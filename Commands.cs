@@ -92,7 +92,7 @@ namespace BirthdayBot
             await ctx.CreateResponseAsync("Here's a new list!", true);
             
             // Fetch birthdays
-            var birthdays = await Database.GetBirthdays();
+            var birthdays = await Database.GetBirthdays(ctx.Guild.Id);
             // Build embed
             var embed = Functions.BuildListEmbed(birthdays, ctx.Guild);
             // Send Embed

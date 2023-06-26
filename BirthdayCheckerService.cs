@@ -46,7 +46,7 @@ namespace BirthdayBot
 
         public async Task CheckBirthdaysAsync()
         {
-            var birthdays = await Database.GetBirthdays();
+            var birthdays = await Database.GetBirthdays(null);
             var today = DateTime.UtcNow.Date;
 
             foreach (var (guildId, userId, birthday) in birthdays)
