@@ -5,13 +5,13 @@
 
  ### Docker Run:
  ```bash
- docker run realmlist/birthdaybot:latest `
-  -e DOTNET_RUNNING_IN_CONTAINER=true `
-  -e SQLSERVER=localhost `
-  -e PORT=3306  `
-  -e USER=dbuser `
-  -e PASSWORD=password `
-  -e DATABASE=dbname `
+ docker run realmlist/birthdaybot:latest 
+  -e DOTNET_RUNNING_IN_CONTAINER=true 
+  -e SQLSERVER=localhost 
+  -e PORT=3306  
+  -e USER=dbuser 
+  -e PASSWORD=password 
+  -e DATABASE=dbname 
   -e TOKEN=discordbottoken
  ```
 
