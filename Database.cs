@@ -168,22 +168,18 @@ namespace BirthdayBot
                     cmd.Parameters.AddWithValue("@guildId", guildId);
                     cmd.Parameters.AddWithValue("@userId", userId);
 
-                    var rowExists = Convert.ToInt32(await cmd.ExecuteScalarAsync()) > 0;
+                    var rowCount = await cmd.ExecuteScalarAsync() as long?;
 
-                    if (rowExists)
+                    if (rowCount != null && rowCount > 0)
                     {
                         cmd.CommandText = "UPDATE birthdays SET birthday = @birthday WHERE guildId = @guildId AND userId = @userId";
-                        cmd.Parameters.AddWithValue("@guildId", guildId);
-                        cmd.Parameters.AddWithValue("@userId", userId);
-                        cmd.Parameters.AddWithValue("@birthday", birthday);
                     }
                     else
                     {
                         cmd.CommandText = "INSERT INTO birthdays (guildId, userId, birthday) VALUES (@guildId, @userId, @birthday)";
-                        cmd.Parameters.AddWithValue("@guildId", guildId);
-                        cmd.Parameters.AddWithValue("@userId", userId);
-                        cmd.Parameters.AddWithValue("@birthday", birthday);
                     }
+
+                    cmd.Parameters.AddWithValue("@birthday", birthday);
 
                     await cmd.ExecuteNonQueryAsync();
                 }
