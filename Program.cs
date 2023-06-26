@@ -19,7 +19,7 @@ namespace BirthdayBot
         // For production use Docker environmental variables
         public static string botToken = Environment.GetEnvironmentVariable("TOKEN");
         public static string server = Environment.GetEnvironmentVariable("SQLSERVER");
-        public static int port = Convert.ToInt32(Environment.GetEnvironmentVariable("PORT"));
+        public static int port = int.Parse(Environment.GetEnvironmentVariable("PORT"));
         public static string user = Environment.GetEnvironmentVariable("USER");
         public static string password = Environment.GetEnvironmentVariable("PASSWORD");
         public static string database = Environment.GetEnvironmentVariable("DATABASE");
