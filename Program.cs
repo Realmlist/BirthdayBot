@@ -17,12 +17,12 @@ namespace BirthdayBot
 
         // Configured in VS2022: Debug -> Debug properties -> Env variables
         // For production use Docker environmental variables
-        public static string? botToken = Environment.GetEnvironmentVariable("TOKEN");
-        public static string? server = Environment.GetEnvironmentVariable("SQLSERVER");
-        public static int? port = Convert.ToInt32(Environment.GetEnvironmentVariable("PORT"));
-        public static string? user = Environment.GetEnvironmentVariable("USER");
-        public static string? password = Environment.GetEnvironmentVariable("PASSWORD");
-        public static string? database = Environment.GetEnvironmentVariable("DATABASE");
+        public static string botToken = Environment.GetEnvironmentVariable("TOKEN");
+        public static string server = Environment.GetEnvironmentVariable("SQLSERVER");
+        public static int port = Convert.ToInt32(Environment.GetEnvironmentVariable("PORT"));
+        public static string user = Environment.GetEnvironmentVariable("USER");
+        public static string password = Environment.GetEnvironmentVariable("PASSWORD");
+        public static string database = Environment.GetEnvironmentVariable("DATABASE");
 
         public static string connectionString = $"server={server};user={user};database={database};port={port};password={password};";
 
