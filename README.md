@@ -21,12 +21,12 @@ version: '3.3'
 services:
     birthdaybot:
         environment:
-            - DOTNET_RUNNING_IN_CONTAINER=true
             - SQLSERVER=<MariaDB/MySQLhost>
             - PORT=3306
             - USER=<dbuser>
             - PASSWORD=<password>
             - DATABASE=<dbname>
             - TOKEN=<discordbottoken>
+            - DOTNET_RUNNING_IN_CONTAINER=true
         image: 'realmlist/birthdaybot:latest'
 ```
