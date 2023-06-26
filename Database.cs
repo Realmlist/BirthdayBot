@@ -120,7 +120,7 @@ namespace BirthdayBot
             }
         }
 
-        public static async Task<List<(ulong guildId, ulong userId, DateTime birthday)>> GetBirthdays(ulong? guildId)
+        public static async Task<List<(ulong guildId, ulong userId, DateTime birthday)>> GetBirthdays(ulong guildId)
         {
             var birthdays = new List<(ulong guildId, ulong userId, DateTime birthday)>();
 
@@ -131,7 +131,7 @@ namespace BirthdayBot
                 using (var cmd = new MySqlCommand())
                 {
                     cmd.Connection = conn;
-                    if(guildId != null)
+                    if(guildId != 0)
                     {
                         cmd.CommandText = "SELECT guildId, userId, birthday FROM birthdays WHERE guildId=@guildId";
                     }
