@@ -65,8 +65,8 @@ namespace BirthdayBot
             Slash = Client.UseSlashCommands(new SlashCommandsConfiguration() { Services = services });
 
             // Only register for test server, remove ulong for global activation
-            ulong guildId = 702106468849156127;
-            Slash.RegisterCommands<Commands>(guildId);
+            //ulong guildId = 702106468849156127;
+            Slash.RegisterCommands<Commands>();
 
             // Set a nice discord status for the bot
             DiscordActivity status = new("the calendar", ActivityType.Watching);
