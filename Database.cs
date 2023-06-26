@@ -134,6 +134,7 @@ namespace BirthdayBot
                     if(guildId != 0)
                     {
                         cmd.CommandText = "SELECT guildId, userId, birthday FROM birthdays WHERE guildId=@guildId";
+                        cmd.Parameters.AddWithValue("@guildId", guildId);
                     }
                     else
                     {
