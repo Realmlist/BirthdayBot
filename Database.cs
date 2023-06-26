@@ -18,7 +18,7 @@ namespace BirthdayBot
                     cmd.CommandText = "CREATE TABLE IF NOT EXISTS birthdays (guildId BIGINT PRIMARY KEY, userId BIGINT, birthday DATE)";
                     await cmd.ExecuteNonQueryAsync();
 
-                    cmd.CommandText = "CREATE TABLE IF NOT EXISTS config (guildId BIGINT PRIMARY KEY, channelId BIGINT NOT NULL DEFAULT '0', roleId BIGINT NOT NULL DEFAULT '0')";
+                    cmd.CommandText = "CREATE TABLE IF NOT EXISTS config (guildId BIGINT, channelId BIGINT NOT NULL DEFAULT '0', roleId BIGINT NOT NULL DEFAULT '0')";
                     await cmd.ExecuteNonQueryAsync();
 
                     cmd.CommandText = "CREATE TABLE IF NOT EXISTS listembeds (channelId BIGINT, messageId BIGINT PRIMARY KEY)";
@@ -164,10 +164,26 @@ namespace BirthdayBot
                 using (var cmd = new MySqlCommand())
                 {
                     cmd.Connection = conn;
-                    cmd.CommandText = "INSERT INTO birthdays (guildId, userId, birthday) VALUES (@guildId, @userId, @birthday) ON DUPLICATE KEY UPDATE birthday=@birthday";
+                    cmd.CommandText = "SELECT COUNT(*) FROM birthdays WHERE guildId = @guildId AND userId = @userId";
                     cmd.Parameters.AddWithValue("@guildId", guildId);
                     cmd.Parameters.AddWithValue("@userId", userId);
-                    cmd.Parameters.AddWithValue("@birthday", birthday);
+
+                    var rowExists = Convert.ToInt32(await cmd.ExecuteScalarAsync()) > 0;
+
+                    if (rowExists)
+                    {
+                        cmd.CommandText = "UPDATE birthdays SET birthday = @birthday WHERE guildId = @guildId AND userId = @userId";
+                        cmd.Parameters.AddWithValue("@guildId", guildId);
+                        cmd.Parameters.AddWithValue("@userId", userId);
+                        cmd.Parameters.AddWithValue("@birthday", birthday);
+                    }
+                    else
+                    {
+                        cmd.CommandText = "INSERT INTO birthdays (guildId, userId, birthday) VALUES (@guildId, @userId, @birthday)";
+                        cmd.Parameters.AddWithValue("@guildId", guildId);
+                        cmd.Parameters.AddWithValue("@userId", userId);
+                        cmd.Parameters.AddWithValue("@birthday", birthday);
+                    }
 
                     await cmd.ExecuteNonQueryAsync();
                 }
