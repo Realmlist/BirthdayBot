@@ -4,8 +4,11 @@ using DSharpPlus.EventArgs;
 using System;
 using System.Collections;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
+using System.Collections.Generic;
 
 namespace BirthdayBot
 {
@@ -68,7 +71,7 @@ namespace BirthdayBot
                             age--;
                     }
 
-                    await HBDBuilder(guildId, user, age);
+                    await HBDBuilder(guildId, member, age);
 
                     if (roleId.HasValue)
                     {
@@ -96,7 +99,7 @@ namespace BirthdayBot
 
         }
 
-        public async Task HBDBuilder(ulong guildId, DiscordUser user, int? age)
+        public async Task HBDBuilder(ulong guildId, DiscordMember member, int? age)
         {
             var channelId = await Database.GetChannelId(guildId);
             if (!channelId.HasValue)
@@ -105,15 +108,27 @@ namespace BirthdayBot
             var channel = await _client.GetChannelAsync(channelId.Value);
             if (channel == null)
                 return;
+            var ageExtra = age.HasValue && age.Value > 1 ? $"They are {age.Value} years old today!" : "";
 
-            var embedBuilder = new DiscordEmbedBuilder()
-                        .WithTitle($"A Happy Birthday to {user.Username}!")
-                        .WithColor(DiscordColor.Gold);
+            DiscordEmbedBuilder embed = new DiscordEmbedBuilder
+            {
+                Color = DiscordColor.Gold,
+                Title = $"Birthday Announcement!",
+                Description = $"**Please wish {member.Mention} a happy birthday! 🎂**\r\n{ageExtra}",
+            };
 
-            embedBuilder.AddField(user.Username, age.HasValue && age.Value > 1 ? $"{age.Value} years old 🎂" : "🎂");
+            var videos = new List<string>
+            {
+                "https://cdn.discordapp.com/attachments/1106239191559454893/1106239377547473057/Today_is_Birthday_in_VRChat.mp4",
+                "https://cdn.discordapp.com/attachments/1106239191559454893/1106239378046591068/Today_is_my_birthday.mp4"
+            };
+            var random = new Random();
+            int randomVid = random.Next(videos.Count);
 
-            if (embedBuilder.Fields.Any())
-                await channel.SendMessageAsync(embed: embedBuilder.Build());
+            await channel.SendMessageAsync(embed: embed);
+            await channel.SendMessageAsync(videos[randomVid]);
+            
+         
         }
     }
 }
