@@ -16,7 +16,7 @@ namespace BirthdayBot
         public static async Task UpdateListEmbeds(DiscordClient client, DiscordGuild guild)
         {
             
-            var birthdays = await Database.GetBirthdays(0);
+            var birthdays = await Database.GetBirthdays(guild.Id);
             var embed = BuildListEmbed(birthdays, guild);
 
             var listMessageIds = await Database.GetListMessageId();
