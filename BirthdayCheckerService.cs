@@ -35,6 +35,7 @@ namespace BirthdayBot
                     await Task.Delay(nextCheck - now, _cts.Token);
 
                     await CheckBirthdaysAsync();
+
                 }
             });
         }
@@ -55,12 +56,9 @@ namespace BirthdayBot
                 DiscordMember member = await guild.GetMemberAsync(userId);
 
                 var roleId = await Database.GetRoleId(guildId);
-                
-                
 
                 if (birthday.Month == today.Month && birthday.Day == today.Day)
                 {
-                    var user = await _client.GetUserAsync(userId);
                     int? age = null;
 
                     if (birthday.Year > 1)
@@ -80,7 +78,10 @@ namespace BirthdayBot
                         await member.GrantRoleAsync(bdayRole, "It's their birthday today!");
                     }
 
-                }else{
+                    await Functions.UpdateListEmbeds(_client, guild);
+
+                }
+                else{
 
                     if (roleId.HasValue)
                     {
@@ -102,20 +103,16 @@ namespace BirthdayBot
         public async Task HBDBuilder(ulong guildId, DiscordMember member, int? age)
         {
             var channelId = await Database.GetChannelId(guildId);
+            //For testing purposes only:
+            //var channelId = await Database.GetChannelId(702106468849156127); 
             if (!channelId.HasValue)
                 return;
 
             var channel = await _client.GetChannelAsync(channelId.Value);
             if (channel == null)
                 return;
-            var ageExtra = age.HasValue && age.Value > 1 ? $"They are {age.Value} years old today!" : "";
 
-            DiscordEmbedBuilder embed = new DiscordEmbedBuilder
-            {
-                Color = DiscordColor.Gold,
-                Title = $"Birthday Announcement!",
-                Description = $"**Please wish {member.Mention} a happy birthday! 🎂**\r\n{ageExtra}",
-            };
+            var ageExtra = age.HasValue && age.Value > 1 ? $"*They are {age.Value} years old today!*\r\n" : "\r\n";
 
             var videos = new List<string>
             {
@@ -124,11 +121,20 @@ namespace BirthdayBot
             };
             var random = new Random();
             int randomVid = random.Next(videos.Count);
+            string attachmentUrl = videos[randomVid];
 
-            await channel.SendMessageAsync(embed: embed);
-            await channel.SendMessageAsync(videos[randomVid]);
+            string contentMsg = $"# Birthday Announcement!\r\n" +
+                                $"**Please wish {member.Mention} a happy birthday! 🎂**\r\n" +
+                                $"{ageExtra}" +
+                                $"\r\n|| @everyone ||";
+
+            var messageBuilder = new DiscordMessageBuilder()
+                .WithContent(contentMsg)
+                .AddFile("video.mp4", await Functions.DownloadFile(attachmentUrl))
+                .WithAllowedMentions(new IMention[] { new UserMention(member), new EveryoneMention() });
             
-         
+            await channel.SendMessageAsync(messageBuilder);
+
         }
     }
 }

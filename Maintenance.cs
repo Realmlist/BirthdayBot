@@ -27,6 +27,7 @@ namespace BirthdayBot
             ulong leftMemberId = e.Member.Id;
             ulong guildId = e.Guild.Id;
             await Database.RemoveBirthday(guildId, leftMemberId);
+            await Functions.UpdateListEmbeds(client, e.Guild);
         }
     }
 }

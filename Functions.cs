@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -46,7 +48,8 @@ namespace BirthdayBot
             var embedBuilder = new DiscordEmbedBuilder()
                 .WithTitle($"Birthday List - {guild.Name}")
                 .WithColor(DiscordColor.Gold)
-                .WithDescription("Register your birthday with\r\n `/birthday add <day> <month> [year]`");
+                .WithDescription("Register your birthday with\r\n" +
+                                 "`/birthday add <day> <month> [year]`");
 
             var groupedBirthdays = birthdays
                 .OrderBy(b => b.birthday.Month)
@@ -74,7 +77,7 @@ namespace BirthdayBot
 
                     monthFieldContent.AppendLine($"{user.Mention} - {birthday.birthday:dd MMMM}{(age.HasValue && age.Value > 1 ? $" ({age.Value} years old)" : "")}");
                 }
-
+                embedBuilder.WithThumbnail(guild.GetIconUrl(ImageFormat.Auto, 1024));
                 embedBuilder.AddField(monthName, monthFieldContent.ToString(), false);
             }
 
@@ -102,6 +105,15 @@ namespace BirthdayBot
                 return;
             }
             
+        }
+
+        public static async Task<Stream> DownloadFile(string url)
+        {
+            var _httpClient = new HttpClient();
+
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStreamAsync();
         }
     }
 }
