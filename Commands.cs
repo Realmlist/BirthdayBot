@@ -55,7 +55,7 @@ namespace BirthdayBot
             {
                 try
                 {
-                    birthday = new DateTime(DateTime.UtcNow.Year, (int)month, (int)day);
+                    birthday = new DateTime(0000, (int)month, (int)day);
                 }
                 catch (ArgumentOutOfRangeException)
                 {
