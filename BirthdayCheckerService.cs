@@ -1,14 +1,5 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
-using System;
-using System.Collections;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using System.IO;
-using System.Collections.Generic;
 
 namespace BirthdayBot
 {
@@ -29,8 +20,8 @@ namespace BirthdayBot
             {
                 while (!_cts.IsCancellationRequested)
                 {
-                    var now = DateTime.UtcNow;
-                    var nextCheck = now.Date.AddDays(1);
+                    DateTime now = DateTime.UtcNow;
+                    DateTime nextCheck = now.Date.AddDays(1);
 
                     await Task.Delay(nextCheck - now, _cts.Token);
 
@@ -47,15 +38,15 @@ namespace BirthdayBot
 
         public async Task CheckBirthdaysAsync()
         {
-            var birthdays = await Database.GetBirthdays(0);
-            var today = DateTime.UtcNow.Date;
+            List<(ulong guildId, ulong userId, DateTime birthday)> birthdays = await Database.GetBirthdays(0);
+            DateTime today = DateTime.UtcNow.Date;
 
             foreach (var (guildId, userId, birthday) in birthdays)
             {
                 DiscordGuild guild = await _client.GetGuildAsync(guildId);
                 DiscordMember member = await guild.GetMemberAsync(userId);
 
-                var roleId = await Database.GetRoleId(guildId);
+                ulong? roleId = await Database.GetRoleId(guildId);
 
                 if (birthday.Month == today.Month && birthday.Day == today.Day)
                 {
@@ -63,7 +54,7 @@ namespace BirthdayBot
 
                     if (birthday.Year != 0001)
                     {
-                        var nextBirthday = new DateTime(today.Year, birthday.Month, birthday.Day);
+                        DateTime nextBirthday = new(today.Year, birthday.Month, birthday.Day);
                         age = today.Year - birthday.Year;
                         if (today < nextBirthday)
                             age--;
@@ -78,14 +69,14 @@ namespace BirthdayBot
                         await member.GrantRoleAsync(bdayRole, "It's their birthday today!");
                     }
 
-                    await Functions.UpdateListEmbeds(_client, guild);
+                    await Functions.UpdateListEmbeds(guild, _client);
 
                 }
                 else{
 
                     if (roleId.HasValue)
                     {
-                        var roles = member.Roles;
+                        IEnumerable<DiscordRole> roles = member.Roles;
                         ulong rId = roleId.Value;
                         DiscordRole bdayRole = guild.GetRole(rId);
 
@@ -102,24 +93,24 @@ namespace BirthdayBot
 
         public async Task HBDBuilder(ulong guildId, DiscordMember member, int? age)
         {
-            var channelId = await Database.GetChannelId(guildId);
+            ulong? channelId = await Database.GetChannelId(guildId);
             //For testing purposes only:
-            //var channelId = await Database.GetChannelId(702106468849156127); 
+            //ulong? channelId = await Database.GetChannelId(702106468849156127); 
             if (!channelId.HasValue)
                 return;
 
-            var channel = await _client.GetChannelAsync(channelId.Value);
+            DiscordChannel channel = await _client.GetChannelAsync(channelId.Value);
             if (channel == null)
                 return;
 
-            var ageExtra = age.HasValue && age.Value > 1 ? $"*They are {age.Value} years old today!*\r\n" : "\r\n";
+            string ageExtra = age.HasValue && age.Value > 1 ? $"*They are {age.Value} years old today!*\r\n" : "\r\n";
 
-            var videos = new List<string>
+            List<string> videos = new()
             {
                 "https://cdn.discordapp.com/attachments/1106239191559454893/1106239377547473057/Today_is_Birthday_in_VRChat.mp4",
                 "https://cdn.discordapp.com/attachments/1106239191559454893/1106239378046591068/Today_is_my_birthday.mp4"
             };
-            var random = new Random();
+            Random random = new();
             int randomVid = random.Next(videos.Count);
             string attachmentUrl = videos[randomVid];
 
@@ -128,10 +119,10 @@ namespace BirthdayBot
                                 $"{ageExtra}" +
                                 $"\r\n|| @everyone ||";
 
-            var messageBuilder = new DiscordMessageBuilder()
-                .WithContent(contentMsg)
-                .AddFile("video.mp4", await Functions.DownloadFile(attachmentUrl))
-                .WithAllowedMentions(new IMention[] { new UserMention(member), new EveryoneMention() });
+            DiscordMessageBuilder messageBuilder = new DiscordMessageBuilder()
+                                    .WithContent(contentMsg)
+                                    .AddFile("video.mp4", await Functions.DownloadFile(attachmentUrl))
+                                    .WithAllowedMentions(new IMention[] { new UserMention(member), new EveryoneMention() });
             
             await channel.SendMessageAsync(messageBuilder);
 

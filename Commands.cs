@@ -2,9 +2,6 @@
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
-using System.Globalization;
-using System.Text;
-using System.Threading.Channels;
 
 
 namespace BirthdayBot
@@ -15,7 +12,7 @@ namespace BirthdayBot
 
         // Only server admins can use the setup channel command
         [SlashCommand("channel", "Sets up the bot in the current channel"), SlashRequireUserPermissions(Permissions.Administrator)]
-        public async Task SetupChannel(InteractionContext ctx,
+        public static async Task SetupChannel(InteractionContext ctx,
         [Option("channel", "The channel to set up the bot in")] DiscordChannel channel)
         {
             await Database.SetChannelId(ctx.Guild.Id, channel.Id);
@@ -26,7 +23,7 @@ namespace BirthdayBot
 
         // Only server admins can use the setup role command
         [SlashCommand("role", "Sets up the role for the bot to assign to the birthday person"), SlashRequireUserPermissions(Permissions.Administrator)]
-        public async Task SetupRole(InteractionContext ctx,
+        public static async Task SetupRole(InteractionContext ctx,
         [Option("role", "Role that will be assigned to the birthday person")] DiscordRole role)
         {
             await Database.SetRole(ctx.Guild.Id, role.Id);
@@ -37,7 +34,7 @@ namespace BirthdayBot
 
 
         [SlashCommand("add", "Adds your birthday to the bot")]
-        public async Task AddBirthday(InteractionContext ctx,
+        public static async Task AddBirthday(InteractionContext ctx,
             [Option("day", "Your birthday day")] long day,
             [Option("month", "Your birthday month")] long month,
             [Option("year", "Your birthday year (optional)")] long? year = null)
@@ -69,18 +66,18 @@ namespace BirthdayBot
 
             await Functions.CheckConfig(ctx);
 
-            await Functions.UpdateListEmbeds(ctx.Client, ctx.Guild);
+            await Functions.UpdateListEmbeds(ctx);
 
             
         }
 
         [SlashCommand("remove", "Removes your birthday from the bot")]
-        public async Task RemoveBirthday(InteractionContext ctx)
+        public static async Task RemoveBirthday(InteractionContext ctx)
         {
             await Database.RemoveBirthday(ctx.Guild.Id, ctx.User.Id);
             await ctx.CreateResponseAsync("Birthday removed!", true);
 
-            await Functions.UpdateListEmbeds(ctx.Client, ctx.Guild);
+            await Functions.UpdateListEmbeds(ctx);
 
             
         }
@@ -90,15 +87,15 @@ namespace BirthdayBot
         {
             // Return something else it throws an error...
             await ctx.CreateResponseAsync("Here's a new list!", true);
-            
+
             // Fetch birthdays
-            var birthdays = await Database.GetBirthdays(ctx.Guild.Id);
+            List<(ulong guildId, ulong userId, DateTime birthday)> birthdays = await Database.GetBirthdays(ctx.Guild.Id);
             // Build embed
-            var embed = Functions.BuildListEmbed(birthdays, ctx.Guild);
+            DiscordEmbed embed = Functions.BuildListEmbed(birthdays, ctx.Guild);
             // Send Embed
-            var message = await ctx.Channel.SendMessageAsync(embed: embed);
+            DiscordMessage message = await ctx.Channel.SendMessageAsync(embed: embed);
             // Save its id to the DB
-            await Database.SetListMessageId(ctx.Channel.Id, message.Id);
+            await Database.SetListMessageId(ctx.Guild.Id, ctx.Channel.Id, message.Id);
 
         }
 
@@ -118,18 +115,18 @@ namespace BirthdayBot
 
             await ctx.CreateResponseAsync("Ran birthday check manually!", true);
 
-            await Functions.UpdateListEmbeds(ctx.Client, ctx.Guild);
+            await Functions.UpdateListEmbeds(ctx);
             
         }
 
         [SlashCommand("update", "Updates all lists in the server"), SlashRequireUserPermissions(Permissions.Administrator)]
-        public async Task UpdateListCommand(InteractionContext ctx)
+        public static async Task UpdateListCommand(InteractionContext ctx)
         {
             await Functions.CheckConfig(ctx);
 
             await ctx.CreateResponseAsync("Ran manual update!", true);
 
-            await Functions.UpdateListEmbeds(ctx.Client, ctx.Guild);
+            await Functions.UpdateListEmbeds(ctx);
 
         }
 

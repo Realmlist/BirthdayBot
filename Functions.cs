@@ -1,36 +1,27 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using DSharpPlus.SlashCommands.Attributes;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace BirthdayBot
 {
     internal class Functions
     {
-        public static async Task UpdateListEmbeds(DiscordClient client, DiscordGuild guild)
+        public static async Task UpdateListEmbeds(InteractionContext ctx)
         {
-            
-            var birthdays = await Database.GetBirthdays(guild.Id);
-            var embed = BuildListEmbed(birthdays, guild);
+            List<(ulong? guildId, ulong? channelId, ulong? messageId)> listMessageIds = await Database.GetListMessageId();
+            List<(ulong guildId, ulong userId, DateTime birthday)> birthdays = await Database.GetBirthdays(ctx.Guild.Id);
 
-            var listMessageIds = await Database.GetListMessageId();
-
-            foreach (var (channelId, messageId) in listMessageIds)
+            foreach (var (guildId, channelId, messageId) in listMessageIds)
             {
-                if (channelId.HasValue && messageId.HasValue)
+                if (guildId.HasValue && channelId.HasValue && messageId.HasValue && guildId.Value == ctx.Guild.Id)
                 {
-                    var channel = await client.GetChannelAsync(channelId.Value);
+                    DiscordEmbed embed = BuildListEmbed(birthdays, ctx.Guild);
+                    DiscordChannel channel = await ctx.Client.GetChannelAsync(channelId.Value);
                     if (channel != null)
                     {
-                        var message = await channel.GetMessageAsync(messageId.Value);
+                        DiscordMessage message = await channel.GetMessageAsync(messageId.Value);
                         if (message != null)
                         {
                             await message.ModifyAsync(embed: embed);
@@ -38,18 +29,40 @@ namespace BirthdayBot
                     }
                 }
             }
+        }
+        
+        public static async Task UpdateListEmbeds(DiscordGuild guild, DiscordClient client) // Non-context edition
+        {
+            List<(ulong? guildId, ulong? channelId, ulong? messageId)> listMessageIds = await Database.GetListMessageId();
+            List<(ulong guildId, ulong userId, DateTime birthday)> birthdays = await Database.GetBirthdays(guild.Id);
 
+            foreach (var (guildId, channelId, messageId) in listMessageIds)
+            {
+                if (guildId.HasValue && channelId.HasValue && messageId.HasValue && guildId.Value == guild.Id)
+                {
+                    DiscordEmbed embed = BuildListEmbed(birthdays, guild);
+                    DiscordChannel channel = await client.GetChannelAsync(channelId.Value);
+                    if (channel != null)
+                    {
+                        DiscordMessage message = await channel.GetMessageAsync(messageId.Value);
+                        if (message != null)
+                        {
+                            await message.ModifyAsync(embed: embed);
+                        }
+                    }
+                }
+            }
         }
 
         public static DiscordEmbed BuildListEmbed(List<(ulong guildId, ulong userId, DateTime birthday)> birthdays, DiscordGuild guild)
         {
-            var today = DateTime.UtcNow.Date;
+            DateTime today = DateTime.UtcNow.Date;
 
-            var embedBuilder = new DiscordEmbedBuilder()
-                .WithTitle($"Birthday List - {guild.Name}")
-                .WithColor(DiscordColor.Gold)
-                .WithDescription("Register your birthday with\r\n" +
-                                 "`/birthday add <day> <month> [year]`");
+            DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
+                                .WithTitle($"Birthday List - {guild.Name}")
+                                .WithColor(DiscordColor.Gold)
+                                .WithDescription("Register your birthday with\r\n" +
+                                                    "`/birthday add <day> <month> [year]`");
 
             var groupedBirthdays = birthdays
                 .OrderBy(b => b.birthday.Month)
@@ -58,18 +71,18 @@ namespace BirthdayBot
 
             foreach (var monthGroup in groupedBirthdays)
             {
-                var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(monthGroup.Key);
-                var monthFieldContent = new StringBuilder();
+                string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(monthGroup.Key);
+                StringBuilder monthFieldContent = new();
 
                 foreach (var birthday in monthGroup)
                 {
-                    var userId = birthday.userId;
-                    var user = guild.GetMemberAsync(userId).Result;
+                    ulong userId = birthday.userId;
+                    DiscordMember user = guild.GetMemberAsync(userId).Result;
                     int? age = null;
 
                     if (birthday.birthday.Year != 0001)
                     {
-                        var nextBirthday = new DateTime(today.Year, birthday.birthday.Month, birthday.birthday.Day);
+                        DateTime nextBirthday = new(today.Year, birthday.birthday.Month, birthday.birthday.Day);
                         age = today.Year - birthday.birthday.Year;
                         if (today < nextBirthday)
                             age--;
@@ -82,8 +95,7 @@ namespace BirthdayBot
             }
 
             // Add footer with bot name and last edit datetime
-            var lastEditDateTime = File.GetLastWriteTimeUtc(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            embedBuilder.WithFooter($"Realm's BirthdayBot | Last edited: {lastEditDateTime.ToString("yyyy-MM-dd HH:mm:ss")} UTC");
+            embedBuilder.WithFooter($"Realm's BirthdayBot | Last edited: {DateTime.UtcNow:yyyy-MMM-dd HH:mm:ss} UTC");
 
             return embedBuilder.Build();
         }
@@ -109,9 +121,9 @@ namespace BirthdayBot
 
         public static async Task<Stream> DownloadFile(string url)
         {
-            var _httpClient = new HttpClient();
+            HttpClient _httpClient = new();
 
-            var response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStreamAsync();
         }

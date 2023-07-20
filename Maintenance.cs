@@ -1,6 +1,5 @@
 ﻿using DSharpPlus;
 using DSharpPlus.EventArgs;
-using System.Threading.Tasks;
 
 namespace BirthdayBot
 {
@@ -27,7 +26,7 @@ namespace BirthdayBot
             ulong leftMemberId = e.Member.Id;
             ulong guildId = e.Guild.Id;
             await Database.RemoveBirthday(guildId, leftMemberId);
-            await Functions.UpdateListEmbeds(client, e.Guild);
+            await Functions.UpdateListEmbeds(e.Guild, client);
         }
 
         //TODO:
