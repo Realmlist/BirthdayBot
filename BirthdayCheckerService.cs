@@ -61,7 +61,7 @@ namespace BirthdayBot
                 {
                     int? age = null;
 
-                    if (birthday.Year != 0000)
+                    if (birthday.Year != 0001)
                     {
                         var nextBirthday = new DateTime(today.Year, birthday.Month, birthday.Day);
                         age = today.Year - birthday.Year;
