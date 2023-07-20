@@ -15,6 +15,7 @@ namespace BirthdayBot
         public static DiscordClient? Client { get; private set; }
         public static SlashCommandsExtension? Slash { get; private set; }
 
+        #pragma warning disable CS8601, CS8604 // Possible null reference assignment.
         // Configured in VS2022: Debug -> Debug properties -> Env variables
         // For production use Docker environmental variables
         public static string botToken = Environment.GetEnvironmentVariable("TOKEN");
@@ -23,6 +24,7 @@ namespace BirthdayBot
         public static string user = Environment.GetEnvironmentVariable("USER");
         public static string password = Environment.GetEnvironmentVariable("PASSWORD");
         public static string database = Environment.GetEnvironmentVariable("DATABASE");
+        #pragma warning restore CS8601, CS8604 // Possible null reference assignment.
 
         public static string connectionString = $"server={server};user={user};database={database};port={port};password={password};";
 
