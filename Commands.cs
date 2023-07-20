@@ -122,5 +122,16 @@ namespace BirthdayBot
             
         }
 
+        [SlashCommand("update", "Updates all lists in the server"), SlashRequireUserPermissions(Permissions.Administrator)]
+        public async Task UpdateListCommand(InteractionContext ctx)
+        {
+            await Functions.CheckConfig(ctx);
+
+            await ctx.CreateResponseAsync("Ran manual update!", true);
+
+            await Functions.UpdateListEmbeds(ctx.Client, ctx.Guild);
+
+        }
+
     }
 }

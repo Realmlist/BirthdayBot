@@ -29,5 +29,8 @@ namespace BirthdayBot
             await Database.RemoveBirthday(guildId, leftMemberId);
             await Functions.UpdateListEmbeds(client, e.Guild);
         }
+
+        //TODO:
+        // Remove embed db entry after a time period in busy channel
     }
 }
