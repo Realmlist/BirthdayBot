@@ -67,7 +67,7 @@ namespace BirthdayBot
                     var user = guild.GetMemberAsync(userId).Result;
                     int? age = null;
 
-                    if (birthday.birthday.Year > 1)
+                    if (birthday.birthday.Year != 0000)
                     {
                         var nextBirthday = new DateTime(today.Year, birthday.birthday.Month, birthday.birthday.Day);
                         age = today.Year - birthday.birthday.Year;
